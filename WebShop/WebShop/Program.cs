@@ -3,13 +3,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using WebShop.Data;
 using WebShop.Data.Entities.Identity;
+using WebShop.Mapper;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var services = builder.Services;
+var configuration = builder.Configuration;
 // Add services to the container.
 
-builder.Services.AddDbContext<AppEFContext>(opt =>
+services.AddDbContext<AppEFContext>(opt =>
          opt.UseNpgsql(builder.Configuration["ConnectionStrings:MyDbConnection"]));
+
 
 builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>
 {
@@ -23,17 +26,21 @@ builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>
     .AddEntityFrameworkStores<AppEFContext>()
     .AddDefaultTokenProviders();
 
+
+builder.Services.AddAutoMapper(typeof(AppMapProfile));
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors();
+services.AddCors();
 
 var app = builder.Build();
 
-app.UseCors(options => 
-     options.AllowAnyMethod().AllowAnyOrigin().AllowAnyHeader());
+app.UseCors(options =>
+                options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+
 
 
 // Configure the HTTP request pipeline.
@@ -51,9 +58,6 @@ app.UseStaticFiles(new StaticFileOptions
     FileProvider = new PhysicalFileProvider(dir),
     RequestPath = "/images"
 });
-
-
-app.UseAuthorization();
 
 app.MapControllers();
 

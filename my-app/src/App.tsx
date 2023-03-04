@@ -4,23 +4,28 @@ import "./App.css";
 import HomePage from "./components/home";
 import CreatePage from "./components/create";
 import { Routes, Route, BrowserRouter } from "react-router-dom";
-import { Layout, NoMatch } from "./components/nav";
+import { NavBar, NoMatch } from "./components/nav";
 import EditPage from "./components/edit";
-import DeletePage from "./components/delete";
+import RegisterPage from "./components/auth/register";
+
+import 'primereact/resources/themes/saga-blue/theme.css';
+import 'primereact/resources/primereact.min.css';
+import 'primeicons/primeicons.css';
+import 'primeflex/primeflex.css';
+import LoginPage from "./components/auth/login";
 
 function App() {
   return (
     <>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Layout />}>
+          <Route path="/" element={<NavBar />}>
             <Route index element={<HomePage />} />
-            <Route path="create" element={<CreatePage />} />
-            <Route path="edit" >
+            <Route path="categories/create" element={<CreatePage />} />
+            <Route path="signup" element={<RegisterPage />} />
+            <Route path="login" element={<LoginPage />} />
+            <Route path="categories/edit" >
               <Route path=":id" element={<EditPage />} />
-            </Route>
-            <Route path="delete" >
-              <Route path=":id" element={<DeletePage />} />
             </Route>
             <Route path="*" element={<NoMatch />} />
           </Route>

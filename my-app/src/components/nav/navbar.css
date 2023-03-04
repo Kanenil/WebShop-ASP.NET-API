@@ -1,0 +1,9 @@
+.navbar-wrapper {
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: center;
+}

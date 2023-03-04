@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WebShop.Data;
 using WebShop.Data.Entities;
@@ -11,10 +12,12 @@ namespace WebShop.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly AppEFContext _context;
+        private readonly IMapper _mapper;
 
-        public CategoriesController(AppEFContext context)
+        public CategoriesController(AppEFContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -30,19 +33,6 @@ namespace WebShop.Controllers
                 })
                 .ToList();
             return Ok(list);
-        }
-
-        private async Task<string> SaveImage(IFormFile image)
-        {
-            
-            string exp = Path.GetExtension(image.FileName);
-            var imageName = Path.GetRandomFileName() + exp;
-            string dirSaveImage = Path.Combine(Directory.GetCurrentDirectory(), "images", imageName);
-            using (var stream = System.IO.File.Create(dirSaveImage))
-            {
-                await image.CopyToAsync(stream);
-            }
-            return imageName;
         }
 
         [HttpGet("{id}")]
@@ -61,43 +51,29 @@ namespace WebShop.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromForm] CategoryCreateViewModel model)
+        public async Task<IActionResult> Create([FromBody] CategoryCreateViewModel model)
         {
-            string imageName = String.Empty;
-            if (model.Image != null)
-            {
-                imageName = await SaveImage(model.Image);
-            }
-            var user = new CategoryEntity
-            {
-                Name = model.Name,
-                Description = model.Description,
-                Image = imageName,
-            };
-            _context.Categories.Add(user);
-            _context.SaveChanges();
+            var cat = _mapper.Map<CategoryEntity>(model);
+            _context.Categories.Add(cat);
+            await _context.SaveChangesAsync();
             return Ok();
         }
 
         [HttpPut]
-        public async Task<IActionResult> Edit([FromForm] CategoryEditViewModel model)
+        public async Task<IActionResult> Edit([FromBody] CategoryEditViewModel model)
         {
             var data = _context.Categories.SingleOrDefault(x=>x.Id == model.Id);
 
-            if (model.File != null)
+            if (!String.IsNullOrEmpty(data.Image) && data.Image != model.Image)
             {
-                if (!String.IsNullOrEmpty(data.Image))
-                {
-                    string imageDir = Path.Combine(Directory.GetCurrentDirectory(), "images", data.Image);
-                    System.IO.File.Delete(imageDir);
-                }
-
-                data.Image = await SaveImage(model.File);
+                string imageDir = Path.Combine(Directory.GetCurrentDirectory(), "images", data.Image);
+                System.IO.File.Delete(imageDir);
             }
 
+            data.Image = model.Image;
             data.Name = model.Name;
             data.Description = model.Description;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return Ok();
         }

@@ -1,61 +1,27 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useRef, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import select from "../../assets/select.jpg";
+import { InputTextarea } from "primereact/inputtextarea";
+import { Image } from "primereact/image";
+import { FileUpload, FileUploadUploadEvent } from "primereact/fileupload";
+import { Toast } from "primereact/toast";
+import { Button } from "primereact/button";
+import { InputText } from "primereact/inputtext";
+import { IResponseImage } from "../auth/register";
 
 interface IUserCreate {
   name: string;
   description: string;
-  image: File | null;
-}
-
-interface IMessageAlert {
-  name: string;
-  class: string;
-  button: string;
+  image: string;
 }
 
 const CreatePage = () => {
   const [state, setState] = useState<IUserCreate>({
     name: "",
     description: "",
-    image: null,
+    image: "",
   });
-
-  const [message, setMessage] = useState<IMessageAlert>({
-    name: "",
-    class: "",
-    button: "d-none",
-  });
-
-  const messageContent = (
-    <>
-      <div className={message.class} role="alert">
-        {message.name}
-        <button
-          type="button"
-          className={message.button}
-          data-bs-dismiss="alert"
-          aria-label="Close"
-        ></button>
-      </div>
-    </>
-  );
-
-  const onFileChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
-    const {target} = e;
-    const {files} = target;
-    
-    if(files) {
-      const file = files[0];
-      setState({...state, image: file});
-    }
-
-    console.log(target, files);
-    
-
-    target.value="";
-  }
 
   const onChangeHandler = (
     e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>
@@ -67,88 +33,143 @@ const CreatePage = () => {
     e.preventDefault();
 
     if (state.name && state.image) {
+      console.log(state);
+
       axios
-        .post("http://localhost:5000/api/categories", state, {
-          headers: { "Content-Type": "multipart/form-data" }
-        })
+        .post("http://localhost:5000/api/categories", state)
         .then((response) => {
-          setMessage({
-            name: "Succesfuly created",
-            class: "alert alert-success alert-dismissible",
-            button: "btn-close",
-          });
           setState({
             name: "",
             description: "",
-            image: null,
+            image: "",
           });
-        })
-        .catch((error) => {
-          setMessage({
-            name: "Something went wrong",
-            class: "alert alert-danger alert-dismissible",
-            button: "btn-close",
+          toast.current?.show({
+            severity: "success",
+            summary: "Success",
+            detail: "Successfuly created category",
           });
         });
+    } else {
+      toast.current?.show({
+        severity: "info",
+        summary: "Info",
+        detail: "Name and Image is required",
+      });
     }
   };
 
+  const toast = useRef<Toast>(null);
+
+  const onUpload = (e: FileUploadUploadEvent) => {
+    const { xhr } = e;
+    xhr.onloadend = () => {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          const response: IResponseImage = JSON.parse(xhr.responseText);
+          setState({ ...state, image: response.image });
+          toast.current?.show({
+            severity: "success",
+            summary: "Success",
+            detail: `Image '${response.image}' Uploaded`,
+          });
+        } else {
+          toast.current?.show({
+            severity: "error",
+            summary: "Fail",
+            detail: "Upload image failed",
+          });
+        }
+      }
+    };
+  };
+
+  const navigator = useNavigate();
+
   return (
     <>
-      <form className="offset-3 col-6" onSubmit={onSubmitHandler}>
-        <h1 className="mb-4">Create Category</h1>
-        {messageContent}
-        <div className="mb-3">
-          <label htmlFor="name" className="form-label">
-            Name
-          </label>
-          <input
-            type="text"
-            value={state.name}
-            onChange={onChangeHandler}
-            className="form-control required"
-            id="name"
-            name="name"
-          />
+      <form onSubmit={onSubmitHandler}>
+        <div className="block-center">
+          <div className="px-4 py-8 md:px-6 lg:px-8 flex align-items-center justify-content-center">
+            <div className="surface-card p-4 shadow-2 border-round w-full lg:w-6">
+              <div className="text-center mb-5">
+                <div className="text-900 text-3xl font-medium mb-3">
+                  Create Category
+                </div>
+              </div>
+
+              <div className="formgrid grid">
+                <div className="field col-4">
+                  <Image
+                    src={
+                      state.image
+                        ? "http://localhost:5000/images/" + state.image
+                        : select
+                    }
+                    alt="Avatar"
+                    width="250"
+                    preview
+                  />
+                </div>
+                <div className="field col">
+                  <span className="p-float-label mt-4">
+                    <InputText
+                      value={state.name}
+                      onChange={onChangeHandler}
+                      id="name"
+                      name="name"
+                      className="w-full"
+                    />
+                    <label htmlFor="firstname">Name</label>
+                  </span>
+                  <span className="p-float-label mt-4">
+                    <InputTextarea
+                      value={state.description}
+                      rows={5}
+                      cols={30}
+                      onChange={onChangeHandler}
+                      id="description"
+                      name="description"
+                      className="w-full"
+                    />
+                    <label htmlFor="lastname">Description</label>
+                  </span>
+                  <Toast ref={toast}></Toast>
+                  <FileUpload
+                    className="mt-4"
+                    mode="basic"
+                    name="image"
+                    url="http://localhost:5000/api/Account/upload"
+                    accept="image/*"
+                    maxFileSize={1000000}
+                    onUpload={onUpload}
+                    auto
+                    chooseLabel="Select Image"
+                    multiple={false}
+                  />
+                </div>
+              </div>
+              <div className="formgrid grid mt-3">
+                <div className="field col">
+                  <Button
+                    severity="success"
+                    label="Create"
+                    icon="pi pi-plus"
+                    className="w-full"
+                  />
+                </div>
+                <div className="field col">
+                  <Button
+                    onClick={() => navigator("/")}
+                    type="button"
+                    label="Back to list"
+                    icon="pi pi-chart-bar"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="mb-3">
-          <label htmlFor="description" className="form-label">
-            Description
-          </label>
-          <textarea
-            className="form-control"
-            id="description"
-            name="description"
-            value={state.description}
-            onChange={onChangeHandler}
-          ></textarea>
-        </div>
-        <div className="mb-3">
-          <label htmlFor="image" className="form-label">
-            <img
-              src={
-                state.image == null ? select : URL.createObjectURL(state.image)
-              }
-              alt="Оберіть фото"
-              width="150px"
-              style={{ cursor: "pointer" }}
-            />
-          </label>
-          <input
-            type="file"
-            className="d-none"
-            accept="image/png, image/jpeg"
-            id="image"
-            name="image"
-            onChange={onFileChangeHandler}
-          />
-        </div>
-        <button type="submit" className="btn btn-primary">
-          Create
-        </button>
-        <Link to="/" className="btn btn-link">
-          Back to list
-        </Link>
       </form>
     </>
   );
