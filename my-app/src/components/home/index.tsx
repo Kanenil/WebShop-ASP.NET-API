@@ -1,20 +1,29 @@
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import select from "../../assets/select.jpg";
 import { confirmDialog, ConfirmDialog } from "primereact/confirmdialog";
 import { Toast } from "primereact/toast";
-import { DataTable } from "primereact/datatable";
+import { DataTable, DataTableFilterMeta } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "primereact/button";
 import { Image } from "primereact/image";
+import { FilterMatchMode, FilterOperator } from "primereact/api";
 import "../home/index.css";
+import { InputText } from "primereact/inputtext";
 
 interface ICategoryItem {
   id: number;
   name: string;
   description: string;
   image: string;
+}
+
+interface IFilter extends DataTableFilterMeta {
+  global: {
+    value: string | null;
+    matchMode: FilterMatchMode;
+  };
 }
 
 const HomePage = () => {
@@ -103,11 +112,42 @@ const HomePage = () => {
     });
   };
 
+  const [filters, setFilters] = useState<IFilter>({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    description: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+    id: { value: null, matchMode: FilterMatchMode.EQUALS },
+  });
+
+  const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    let _filters = { ...filters };
+
+    _filters["global"].value = value;
+
+    setFilters(_filters);
+    setGlobalFilterValue(value);
+  };
+
+  const [globalFilterValue, setGlobalFilterValue] = useState<string>("");
+
   const header = (
-    <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-      <span className="text-xl text-900 font-bold">Categories</span>
-      <Button onClick={() => load()} icon="pi pi-refresh" rounded raised />
-    </div>
+    <>
+      <div className="flex flex-wrap align-items-center justify-content-between gap-2">
+        <span className="text-xl text-900 font-bold">Categories</span>
+        <Button onClick={() => load()} icon="pi pi-refresh" rounded raised />
+      </div>
+      <div className="flex justify-content-end mt-3">
+        <span className="p-input-icon-left">
+          <i className="pi pi-search" />
+          <InputText
+            value={globalFilterValue}
+            onChange={onGlobalFilterChange}
+            placeholder="Search"
+          />
+        </span>
+      </div>
+    </>
   );
   const footer = `In total there are ${
     products ? products.length : 0
@@ -121,6 +161,9 @@ const HomePage = () => {
         value={products}
         header={header}
         footer={footer}
+        filters={filters}
+        filterDisplay="row"
+        globalFilterFields={["name", "description", "id"]}
         tableStyle={{ minWidth: "60rem" }}
         paginator
         rows={5}
