@@ -7,11 +7,6 @@ import { Routes, Route, BrowserRouter } from "react-router-dom";
 import { NavBar, NoMatch } from "./components/nav";
 import EditPage from "./components/edit";
 import RegisterPage from "./components/auth/register";
-
-import 'primereact/resources/themes/saga-blue/theme.css';
-import 'primereact/resources/primereact.min.css';
-import 'primeicons/primeicons.css';
-import 'primeflex/primeflex.css';
 import LoginPage from "./components/auth/login";
 
 function App() {

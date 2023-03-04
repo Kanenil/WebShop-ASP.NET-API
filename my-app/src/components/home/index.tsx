@@ -8,9 +8,11 @@ import { DataTable, DataTableFilterMeta } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "primereact/button";
 import { Image } from "primereact/image";
-import { FilterMatchMode, FilterOperator } from "primereact/api";
+import { FilterMatchMode } from "primereact/api";
 import "../home/index.css";
 import { InputText } from "primereact/inputtext";
+import HomePageSkeleton from "../skeletons/home";
+
 
 interface ICategoryItem {
   id: number;
@@ -28,15 +30,23 @@ interface IFilter extends DataTableFilterMeta {
 
 const HomePage = () => {
   const [products, setProducts] = useState<Array<ICategoryItem>>([]);
+  const [loading, setLoading] = useState<boolean>(true)
   let state = 0;
 
   const navigator = useNavigate();
 
   const load = () => {
+    setLoading(true);
     axios
       .get<Array<ICategoryItem>>("http://localhost:5000/api/categories")
       .then((resp) => {
         setProducts(resp.data);
+        setLoading(false);
+      })
+      .catch((err)=> {
+        setTimeout(() => {
+          load();
+        }, 5000)
       });
   };
 
@@ -154,7 +164,11 @@ const HomePage = () => {
   } categories.`;
 
   return (
-    <div className="cont mt-4">
+    <>
+    {loading ? (
+      <HomePageSkeleton/>
+      ): (
+        <div className="cont mt-4">
       <Toast ref={toast} />
       <ConfirmDialog />
       <DataTable
@@ -176,6 +190,8 @@ const HomePage = () => {
         <Column body={editDeleteBodyTemplate}></Column>
       </DataTable>
     </div>
+      )}
+    </>
   );
 };
 
