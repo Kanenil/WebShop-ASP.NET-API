@@ -8,6 +8,7 @@ import { NavBar, NoMatch } from "./components/nav";
 import EditPage from "./components/edit";
 import RegisterPage from "./components/auth/register";
 import LoginPage from "./components/auth/login";
+import GoogleRegister from "./components/auth/register/google";
 
 function App() {
   return (
@@ -19,6 +20,9 @@ function App() {
             <Route path="categories/create" element={<CreatePage />} />
             <Route path="signup" element={<RegisterPage />} />
             <Route path="login" element={<LoginPage />} />
+            <Route path="signup" >
+              <Route path=":info" element={<GoogleRegister />} />
+            </Route>
             <Route path="categories/edit" >
               <Route path=":id" element={<EditPage />} />
             </Route>

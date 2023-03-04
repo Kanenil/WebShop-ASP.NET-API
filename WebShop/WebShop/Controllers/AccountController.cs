@@ -17,12 +17,14 @@ namespace WebShop.Controllers
     public class AccountController : ControllerBase
     {
         private readonly UserManager<UserEntity> _userManager;
+        private readonly SignInManager<UserEntity> _signInManager;
         private readonly IMapper _mapper;
 
-        public AccountController(UserManager<UserEntity> userManager, IMapper mapper)
+        public AccountController(UserManager<UserEntity> userManager, IMapper mapper, SignInManager<UserEntity> signInManager)
         {
             _userManager = userManager;
             _mapper = mapper;
+            _signInManager = signInManager;
         }
 
         [HttpPost("register")]
@@ -31,17 +33,64 @@ namespace WebShop.Controllers
             try
             {
                 var user = _mapper.Map<UserEntity>(model);
-                var result = await _userManager.CreateAsync(user, model.Password);
-                if (result.Succeeded)
+
+                if (model.ProviderKey != null)
                 {
-                    result = _userManager
-                        .AddToRoleAsync(user, Roles.User)
-                        .Result;
+                    await _userManager.CreateAsync(user);
+                    await _userManager.AddToRoleAsync(user, Roles.User);
+                    await _userManager.AddLoginAsync(user, new UserLoginInfo("Google", model.ProviderKey, "Google"));
+                    return Ok();
+                }
+                else
+                {
+                    var result = await _userManager.CreateAsync(user, model.Password);
+                    if (result.Succeeded)
+                    {
+                        result = await _userManager.AddToRoleAsync(user, Roles.User);
+
+
+
+                        return Ok();
+                    }
+                    else
+                    {
+                        return BadRequest();
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginViewModel model)
+        {
+            try
+            {
+                if (model.ProviderKey != null)
+                {
+                    var user = await _userManager.FindByLoginAsync("Google", model.ProviderKey);
+
+                    if (user == null)
+                        return BadRequest();
 
                     return Ok();
                 }
                 else
                 {
+                    var user = await _userManager.FindByEmailAsync(model.Email);
+
+                    if (user == null) 
+                        return BadRequest();
+
+                    var res = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
+
+                    if (res.Succeeded)
+                        return Ok();
+
                     return BadRequest();
                 }
             }
@@ -50,7 +99,7 @@ namespace WebShop.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        
+
         [HttpPost("upload")]
         public async Task <IActionResult> Upload([FromForm] IFormFile image)  
         {

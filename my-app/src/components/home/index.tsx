@@ -11,7 +11,7 @@ import { Image } from "primereact/image";
 import { FilterMatchMode } from "primereact/api";
 import "../home/index.css";
 import { InputText } from "primereact/inputtext";
-import HomePageSkeleton from "../skeletons/home";
+import HomePageSkeleton from "./skeletons/index";
 
 
 interface ICategoryItem {
@@ -78,7 +78,6 @@ const HomePage = () => {
           }}
           label="Edit"
           severity="warning"
-          rounded
           raised
         />
         <Button
@@ -86,10 +85,9 @@ const HomePage = () => {
             state = product.id;
             confirmDelete();
           }}
-          className="ms-1"
+          className="ml-1"
           label="Delete"
           severity="danger"
-          rounded
           raised
         />
       </>

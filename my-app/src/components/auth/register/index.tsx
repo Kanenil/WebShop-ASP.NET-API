@@ -104,7 +104,7 @@ const RegisterPage = () => {
     <form onSubmit={onSubmitHandler}>
       <div className="block-center">
         <div className="px-4 py-8 md:px-6 lg:px-8 flex align-items-center justify-content-center">
-          <div className="surface-card p-4 shadow-2 border-round w-full lg:w-6">
+          <div className="surface-card p-4 shadow-2 border-round w-full lg:w-5">
             <div className="text-center mb-5">
               <img src="logo192.png" alt="logo" height={50} className="mb-3" />
               <div className="text-900 text-3xl font-medium mb-3">
@@ -113,7 +113,7 @@ const RegisterPage = () => {
             </div>
 
             <div className="formgrid grid">
-              <div className="field col-1">
+              <div className="field col-5">
                 <Image
                   src={
                     user.image
@@ -125,7 +125,7 @@ const RegisterPage = () => {
                   preview
                 />
               </div>
-              <div className="field col col-offset-3">
+              <div className="field col">
                 <span className="p-float-label mt-4">
                   <InputText
                     value={user.firstName}
@@ -209,14 +209,19 @@ const RegisterPage = () => {
 
             <div className="formgrid grid mt-3">
               <div className="field col">
-                <Button label="Sign Up" icon="pi pi-user" className="w-full" />
+                <Button
+                  type="submit"
+                  label="Sign Up"
+                  icon="pi pi-user"
+                  className="w-full"
+                />
               </div>
               <div className="field col">
                 <Button
-                  type="button"
-                  label="Sign Up with Google"
-                  icon="pi pi-google"
+                  label="Login"
+                  icon="pi pi-sign-in"
                   className="w-full"
+                  onClick={() => navigator("/login")}
                 />
               </div>
             </div>

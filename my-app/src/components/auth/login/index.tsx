@@ -1,19 +1,49 @@
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { Checkbox } from "primereact/checkbox";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Password } from "primereact/password";
+import axios from "axios";
+import GoogleAuth from "./google";
+
+interface ILoginForm {
+  email: string;
+  password: string;
+}
 
 const LoginPage = () => {
   const [checked, setChecked] = useState(false);
 
+  const navigator = useNavigate();
+
+  const [state, setState] = useState<ILoginForm>({
+    email: "",
+    password: "",
+  });
+
+  const onChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
+    setState({ ...state, [e.target.name]: e.target.value });
+  };
+
+  const onSubmitHandler = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (state.email && state.password) {
+      await axios
+        .post("http://localhost:5000/api/account/login", state)
+        .then((resp) => {
+          navigator("/");
+        });
+    }
+  };
+
   return (
     <>
-      <form>
+      <form onSubmit={onSubmitHandler}>
         <div className="block-center">
           <div className="px-4 py-8 md:px-6 lg:px-8 flex align-items-center justify-content-center">
-            <div className="surface-card p-4 shadow-2 border-round w-full lg:w-6">
+            <div className="surface-card p-4 shadow-2 border-round w-full lg:w-4">
               <div className="text-center mb-5">
                 <img
                   src="logo192.png"
@@ -38,6 +68,8 @@ const LoginPage = () => {
               <div>
                 <span className="p-float-label">
                   <InputText
+                    value={state.email}
+                    onChange={onChangeHandler}
                     type="email"
                     id="email"
                     name="email"
@@ -48,6 +80,8 @@ const LoginPage = () => {
 
                 <span className="p-float-label mt-4">
                   <Password
+                    value={state.password}
+                    onChange={onChangeHandler}
                     name="password"
                     id="password"
                     className="w-full"
@@ -82,12 +116,7 @@ const LoginPage = () => {
                     />
                   </div>
                   <div className="field col">
-                    <Button
-                      type="button"
-                      label="Sign In with Google"
-                      icon="pi pi-google"
-                      className="w-full"
-                    />
+                    <GoogleAuth />
                   </div>
                 </div>
               </div>
