@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import "../../../home/index.css";
+import "../../../categories/home/index.css";
 import jwt from "jwt-decode";
 import { Button } from "primereact/button";
 import { Image } from "primereact/image";
@@ -19,13 +19,12 @@ interface IGoogleJWT
     sub: string;
 }
 
-interface IGoogleUserSend 
+interface IGoogleRegisterUser
 {
     firstName: string;
     lastName: string;
     image: string;
-    email: string;
-    providerKey:string;
+    token:string;
 }
 
 const GoogleRegister = () => {
@@ -37,26 +36,17 @@ const GoogleRegister = () => {
       firstName: decodeJWT.given_name,
       lastName: decodeJWT.family_name,
       image: decodeJWT.picture,
-      email: decodeJWT.email,
-      providerKey: decodeJWT.sub,
+      token: info as string,
     });
-
-    axios.post("http://localhost:5000/api/Account/login", {
-        providerKey: decodeJWT.sub
-    }).then((resp)=>{
-        navigator('/');
-    })
-
   }, []);
 
   const toast = useRef<Toast>(null);
 
-  const [state, setState] = useState<IGoogleUserSend>({
+  const [state, setState] = useState<IGoogleRegisterUser>({
     firstName:"",
     lastName:"",
     image:"",
-    email:"",
-    providerKey:""
+    token:""
   });
 
   const onChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
@@ -101,7 +91,7 @@ const GoogleRegister = () => {
 
     if (Validate()) {
       axios
-        .post("http://localhost:5000/api/Account/register", state)
+        .post("http://localhost:5000/api/Account/google/register", state)
         .then((response) => {
           navigator("/");
         })
@@ -121,7 +111,7 @@ const GoogleRegister = () => {
     }
   };
 
-  const expression = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi;
+  const expression = /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/;
   const regex = new RegExp(expression);
 
   return (

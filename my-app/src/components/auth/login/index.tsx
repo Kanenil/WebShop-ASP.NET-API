@@ -33,6 +33,7 @@ const LoginPage = () => {
       await axios
         .post("http://localhost:5000/api/account/login", state)
         .then((resp) => {
+          localStorage.setItem("token", resp.data!.token);
           navigator("/");
         });
     }

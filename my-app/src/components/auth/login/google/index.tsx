@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { APP_ENV } from "../../../../env";
@@ -7,7 +8,18 @@ const GoogleAuth = () => {
     const navigator = useNavigate();
 
   const handleLogin = (resp: any) => {
-    navigator("/signup/"+resp!.credential);
+    const token = resp!.credential as string;
+    axios.post("http://localhost:5000/api/account/google/login", token, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then((resp)=>{
+      localStorage.setItem("token", resp.data!.token);
+      navigator("/");
+    }).catch((error)=>{
+      navigator("/signup/" + token);
+    });
   };
 
   useEffect(() => {

@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using WebShop.Constants;
 using WebShop.Data;
 using WebShop.Data.Entities;
 using WebShop.Models;
@@ -9,6 +11,7 @@ namespace WebShop.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = Roles.Admin)]
     public class CategoriesController : ControllerBase
     {
         private readonly AppEFContext _context;

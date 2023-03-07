@@ -1,7 +1,8 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useNavigate } from "react-router-dom";
 import { Menubar } from 'primereact/menubar';
 import { MenuItem } from 'primereact/menuitem';
 import '../nav/navbar.css';
+import { useEffect } from "react";
 
 
 
@@ -16,6 +17,21 @@ export const NoMatch = () => {
         <Link to="/">Go to the home page</Link>
       </p>
     </div>
+  );
+};
+
+export const Logout = () => {
+  const navigator = useNavigate();
+
+  useEffect(() => {
+    localStorage.removeItem("token");
+    navigator("/");
+  }, [])
+  
+
+  return (
+    <>
+    </>
   );
 };
 
@@ -34,7 +50,7 @@ export const NavBar = () => {
             {
                 label: 'List',
                 icon: 'pi pi-fw pi-briefcase',
-                url:"/"
+                url:"/categories"
             }
         ]
     }
@@ -48,7 +64,7 @@ const start = [
   },
 ];
 
-const end = 
+const end = localStorage.getItem("token") == undefined?
  [
    {
      label: "Login",
@@ -60,6 +76,12 @@ const end =
      icon: "pi pi-fw pi-user-plus",
      url: "/signup",
    },
+ ]:[
+  {
+    label: "Logout",
+     icon: "pi pi-fw pi-sign-out",
+     url: "/logout",
+  }
  ];
 
 const menuItems = [...start, ...items, ...end];

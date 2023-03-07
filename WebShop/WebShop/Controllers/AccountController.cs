@@ -1,14 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-using static System.Net.Mime.MediaTypeNames;
 using WebShop.Models;
-using WebShop.Data;
 using Microsoft.AspNetCore.Identity;
 using WebShop.Constants;
 using WebShop.Data.Entities.Identity;
 using AutoMapper;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
+using WebShop.Abstract;
 
 namespace WebShop.Controllers
 {
@@ -17,14 +13,74 @@ namespace WebShop.Controllers
     public class AccountController : ControllerBase
     {
         private readonly UserManager<UserEntity> _userManager;
-        private readonly SignInManager<UserEntity> _signInManager;
+        private readonly IJwtTokenService _jwtTokenService;
         private readonly IMapper _mapper;
 
-        public AccountController(UserManager<UserEntity> userManager, IMapper mapper, SignInManager<UserEntity> signInManager)
+        public AccountController(UserManager<UserEntity> userManager, IMapper mapper, IJwtTokenService jwtTokenService)
         {
             _userManager = userManager;
             _mapper = mapper;
-            _signInManager = signInManager;
+            _jwtTokenService = jwtTokenService;
+        }
+
+        [HttpPost("google/login")]
+        public async Task<IActionResult> GoogleLogin([FromBody] string googleToken)
+        {
+            var payload = await _jwtTokenService.VerifyGoogleToken(googleToken);
+
+            if (payload == null) 
+                return BadRequest();
+
+            string provider = "Google";
+            var info = new UserLoginInfo(provider, payload.Subject, provider);
+            var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+
+            if (user == null)
+                return BadRequest();
+
+            var token = await _jwtTokenService.CreateToken(user);
+            return Ok(new { token });
+        }
+
+        [HttpPost("google/register")]
+        public async Task<IActionResult> GoogleRegister([FromBody] GoogleLoginViewModel model)
+        {
+            var payload = await _jwtTokenService.VerifyGoogleToken(model.Token);
+
+            if (payload == null)
+                return BadRequest();
+
+            string provider = "Google";
+            var info = new UserLoginInfo(provider, payload.Subject, provider);
+            var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+
+            if (user == null)
+            {
+                user = await _userManager.FindByEmailAsync(payload.Email);
+                if (user == null)
+                {
+                    user = new UserEntity
+                    {
+                        Email = payload.Email,
+                        FirstName = model.FirstName,
+                        UserName = payload.Email,
+                        LastName = model.LastName,
+                        Image = model.Image
+                    };
+
+                    var resultCreate = await _userManager.CreateAsync(user);
+                    if (!resultCreate.Succeeded)
+                        return BadRequest();
+                    await _userManager.AddToRoleAsync(user, Roles.User);
+                }
+
+                var resultUserLogin = await _userManager.AddLoginAsync(user, info);
+                if (!resultUserLogin.Succeeded)
+                    return BadRequest();
+            }
+
+            var token = await _jwtTokenService.CreateToken(user);
+            return Ok(new { token });
         }
 
         [HttpPost("register")]
@@ -34,28 +90,17 @@ namespace WebShop.Controllers
             {
                 var user = _mapper.Map<UserEntity>(model);
 
-                if (model.ProviderKey != null)
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
                 {
-                    await _userManager.CreateAsync(user);
-                    await _userManager.AddToRoleAsync(user, Roles.User);
-                    await _userManager.AddLoginAsync(user, new UserLoginInfo("Google", model.ProviderKey, "Google"));
-                    return Ok();
+                    result = await _userManager.AddToRoleAsync(user, Roles.User);
+
+                    var token = await _jwtTokenService.CreateToken(user);
+                    return Ok(new { token });
                 }
                 else
                 {
-                    var result = await _userManager.CreateAsync(user, model.Password);
-                    if (result.Succeeded)
-                    {
-                        result = await _userManager.AddToRoleAsync(user, Roles.User);
-
-
-
-                        return Ok();
-                    }
-                    else
-                    {
-                        return BadRequest();
-                    }
+                    return BadRequest();
                 }
 
             }
@@ -70,29 +115,17 @@ namespace WebShop.Controllers
         {
             try
             {
-                if (model.ProviderKey != null)
-                {
-                    var user = await _userManager.FindByLoginAsync("Google", model.ProviderKey);
+                var user = await _userManager.FindByNameAsync(model.Email);
 
-                    if (user == null)
-                        return BadRequest();
+                if (user == null)
+                    return NotFound();
 
-                    return Ok();
-                }
-                else
-                {
-                    var user = await _userManager.FindByEmailAsync(model.Email);
 
-                    if (user == null) 
-                        return BadRequest();
-
-                    var res = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
-
-                    if (res.Succeeded)
-                        return Ok();
-
+                if(!await _userManager.CheckPasswordAsync(user, model.Password))
                     return BadRequest();
-                }
+
+                var token = await _jwtTokenService.CreateToken(user);
+                return Ok(new { token });
             }
             catch (Exception ex)
             {

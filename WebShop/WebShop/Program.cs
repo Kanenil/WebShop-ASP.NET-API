@@ -1,16 +1,19 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using WebShop.Abstract;
 using WebShop.Data;
 using WebShop.Data.Entities.Identity;
 using WebShop.Mapper;
+using WebShop.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-var services = builder.Services;
-var configuration = builder.Configuration;
 // Add services to the container.
 
-services.AddDbContext<AppEFContext>(opt =>
+builder.Services.AddDbContext<AppEFContext>(opt =>
          opt.UseNpgsql(builder.Configuration["ConnectionStrings:MyDbConnection"]));
 
 
@@ -28,13 +31,35 @@ builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>
 
 
 builder.Services.AddAutoMapper(typeof(AppMapProfile));
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+
+var signinKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetValue<String>("JWTSecretKey")));
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(cfg =>
+{
+    cfg.RequireHttpsMetadata = false;
+    cfg.SaveToken = true;
+    cfg.TokenValidationParameters = new TokenValidationParameters()
+    {
+        IssuerSigningKey = signinKey,
+        ValidateAudience = false,
+        ValidateIssuer = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ClockSkew = TimeSpan.Zero
+    };
+});
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-services.AddCors();
+builder.Services.AddCors();
 
 var app = builder.Build();
 
@@ -58,6 +83,9 @@ app.UseStaticFiles(new StaticFileOptions
     FileProvider = new PhysicalFileProvider(dir),
     RequestPath = "/images"
 });
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

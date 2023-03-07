@@ -1,14 +1,14 @@
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import select from "../../assets/select.jpg";
+import select from "../../../assets/select.jpg";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Image } from "primereact/image";
 import { FileUpload, FileUploadUploadEvent } from "primereact/fileupload";
 import { Toast } from "primereact/toast";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import { IResponseImage } from "../auth/register";
+import { IResponseImage } from "../../auth/register";
 
 interface IUserEdit {
   id: number;
