@@ -34,10 +34,10 @@ const CategoriesPage = () => {
 
   const navigator = useNavigate();
 
+  const token = localStorage.getItem("token");
   const load = () => {
     setLoading(true);
 
-    const token = localStorage.getItem("token");
     if(token)
     {
       axios
@@ -107,7 +107,12 @@ const CategoriesPage = () => {
 
   const accept = () => {
     axios
-      .delete("http://localhost:5000/api/categories/" + state)
+      .delete("http://localhost:5000/api/categories/" + state, {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+      })
       .then((response) => {
         load();
         toast.current?.show({

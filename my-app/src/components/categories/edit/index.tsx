@@ -28,8 +28,14 @@ const EditPage = () => {
   const { id } = useParams();
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
     axios
-      .get<IUserEdit>("http://localhost:5000/api/categories/" + id)
+      .get<IUserEdit>("http://localhost:5000/api/categories/" + id, {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+      })
       .then((resp) => {
         setState(resp.data);
       });

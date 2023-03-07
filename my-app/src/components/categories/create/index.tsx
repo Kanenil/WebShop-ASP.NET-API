@@ -34,9 +34,14 @@ const CreatePage = () => {
 
     if (state.name && state.image) {
       console.log(state);
-
+      const token = localStorage.getItem("token");
       axios
-        .post("http://localhost:5000/api/categories", state)
+        .post("http://localhost:5000/api/categories", state, {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+        })
         .then((response) => {
           setState({
             name: "",
