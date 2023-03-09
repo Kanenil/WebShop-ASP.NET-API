@@ -1,4 +1,4 @@
-﻿namespace WebShop.Models
+﻿namespace WebShop.Models.Category
 {
     public class CategoryCreateViewModel
     {

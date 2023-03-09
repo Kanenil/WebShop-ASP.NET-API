@@ -9,6 +9,8 @@ import { Toast } from "primereact/toast";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { IResponseImage } from "../../auth/register";
+import { APP_ENV } from "../../../env";
+import http from "../../../http";
 
 interface IUserEdit {
   id: number;
@@ -29,8 +31,8 @@ const EditPage = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    axios
-      .get<IUserEdit>("http://localhost:5000/api/categories/" + id, {
+    http
+      .get<IUserEdit>('api/categories/' + id, {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
@@ -78,8 +80,8 @@ const EditPage = () => {
     e.preventDefault();
 
     if (state.name && state.image) {
-      axios
-        .put("http://localhost:5000/api/categories", state)
+      http
+        .put("api/categories", state)
         .then((response) => {
           navigator("/");
         })
@@ -116,7 +118,7 @@ const EditPage = () => {
                   <Image
                     src={
                       state.image
-                        ? "http://localhost:5000/images/" + state.image
+                        ? APP_ENV.IMAGE_PATH + state.image
                         : select
                     }
                     alt="Avatar"
@@ -152,7 +154,7 @@ const EditPage = () => {
                     className="mt-4"
                     mode="basic"
                     name="image"
-                    url="http://localhost:5000/api/Account/upload"
+                    url={APP_ENV.IMAGE_UPLOAD_PATH}
                     accept="image/*"
                     maxFileSize={1000000}
                     onUpload={onUpload}
@@ -173,7 +175,7 @@ const EditPage = () => {
                 </div>
                 <div className="field col">
                   <Button
-                    onClick={() => navigator("/")}
+                    onClick={() => navigator("/categories")}
                     type="button"
                     label="Back to list"
                     icon="pi pi-chart-bar"

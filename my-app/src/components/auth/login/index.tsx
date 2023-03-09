@@ -6,6 +6,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { Password } from "primereact/password";
 import axios from "axios";
 import GoogleAuth from "./google";
+import http from "../../../http";
+import { useDispatch } from "react-redux";
+import { AuthActionType } from "../types";
 
 interface ILoginForm {
   email: string;
@@ -16,6 +19,7 @@ const LoginPage = () => {
   const [checked, setChecked] = useState(false);
 
   const navigator = useNavigate();
+  const dispatch = useDispatch();
 
   const [state, setState] = useState<ILoginForm>({
     email: "",
@@ -26,16 +30,17 @@ const LoginPage = () => {
     setState({ ...state, [e.target.name]: e.target.value });
   };
 
-  const onSubmitHandler = async (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmitHandler = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (state.email && state.password) {
-      await axios
-        .post("http://localhost:5000/api/account/login", state)
-        .then((resp) => {
-          localStorage.setItem("token", resp.data!.token);
-          navigator("/");
-        });
+      http.post("api/account/login", state).then((resp) => {
+        const { token } = resp.data;
+        localStorage.setItem("token", token);
+        http.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        dispatch({type: AuthActionType.USER_LOGIN});
+        navigator("/");
+      });
     }
   };
 

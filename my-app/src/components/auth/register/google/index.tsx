@@ -9,6 +9,10 @@ import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { IResponseImage } from "..";
 import { Toast } from "primereact/toast";
 import axios from "axios";
+import http from "../../../../http";
+import { useDispatch } from "react-redux";
+import { AuthActionType } from "../../types";
+import { APP_ENV } from "../../../../env";
 
 interface IGoogleJWT
 {
@@ -54,6 +58,7 @@ const GoogleRegister = () => {
   };
 
   const navigator = useNavigate();
+  const dispatch = useDispatch();
 
   const onUpload = (e: FileUploadUploadEvent) => {
     const { xhr } = e;
@@ -90,9 +95,13 @@ const GoogleRegister = () => {
     e.preventDefault();
 
     if (Validate()) {
-      axios
-        .post("http://localhost:5000/api/Account/google/register", state)
-        .then((response) => {
+      http
+        .post("api/Account/google/register", state)
+        .then((resp) => {
+          const { token } = resp.data;
+        localStorage.setItem("token", token);
+        http.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        dispatch({type: AuthActionType.USER_LOGIN});
           navigator("/");
         })
         .catch((error) => {
@@ -135,7 +144,7 @@ const GoogleRegister = () => {
               <div className="formgrid grid">
                 <div className="field col-1">
                   <Image
-                    src={state.image.match(regex)?state.image:"http://localhost:5000/images/" + state.image}
+                    src={state.image.match(regex)?state.image: APP_ENV.IMAGE_PATH + state.image}
                     alt="Avatar"
                     width="250"
                     preview
@@ -166,7 +175,7 @@ const GoogleRegister = () => {
                     className="mt-4"
                     mode="basic"
                     name="image"
-                    url="http://localhost:5000/api/Account/upload"
+                    url={APP_ENV.IMAGE_UPLOAD_PATH}
                     accept="image/*"
                     maxFileSize={1000000}
                     onUpload={onUpload}

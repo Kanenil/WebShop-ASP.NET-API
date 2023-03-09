@@ -8,6 +8,10 @@ import { Toast } from "primereact/toast";
 import { useState, useRef, ChangeEvent } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import http from "../../../http";
+import { useDispatch } from "react-redux";
+import { AuthActionType } from "../types";
+import { APP_ENV } from "../../../env";
 
 export interface IResponseImage {
   image: string;
@@ -62,6 +66,7 @@ const RegisterPage = () => {
   };
 
   const navigator = useNavigate();
+  const dispatch = useDispatch();
 
   const Validate = () => {
     if (!user.firstName) return false;
@@ -79,9 +84,13 @@ const RegisterPage = () => {
     e.preventDefault();
 
     if (Validate()) {
-      axios
-        .post("http://localhost:5000/api/Account/register", user)
-        .then((response) => {
+      http
+        .post("api/Account/register", user)
+        .then((resp) => {
+          const { token } = resp.data;
+        localStorage.setItem("token", token);
+        http.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        dispatch({type: AuthActionType.USER_LOGIN});
           navigator("/");
         })
         .catch((error) => {
@@ -117,7 +126,7 @@ const RegisterPage = () => {
                 <Image
                   src={
                     user.image
-                      ? "http://localhost:5000/images/" + user.image
+                      ? APP_ENV.IMAGE_PATH + user.image
                       : "logo192.png"
                   }
                   alt="Avatar"
@@ -151,7 +160,7 @@ const RegisterPage = () => {
                   className="mt-4"
                   mode="basic"
                   name="image"
-                  url="http://localhost:5000/api/Account/upload"
+                  url={APP_ENV.IMAGE_UPLOAD_PATH}
                   accept="image/*"
                   maxFileSize={1000000}
                   onUpload={onUpload}

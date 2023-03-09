@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using WebShop.Models;
 using Microsoft.AspNetCore.Identity;
 using WebShop.Constants;
 using WebShop.Data.Entities.Identity;
 using AutoMapper;
 using WebShop.Abstract;
+using WebShop.Models.Account;
 
 namespace WebShop.Controllers
 {
@@ -43,7 +43,7 @@ namespace WebShop.Controllers
         }
 
         [HttpPost("google/register")]
-        public async Task<IActionResult> GoogleRegister([FromBody] GoogleLoginViewModel model)
+        public async Task<IActionResult> GoogleRegister([FromBody] GoogleRegisterViewModel model)
         {
             var payload = await _jwtTokenService.VerifyGoogleToken(model.Token);
 
@@ -131,24 +131,6 @@ namespace WebShop.Controllers
             {
                 return BadRequest(ex.Message);
             }
-        }
-
-        [HttpPost("upload")]
-        public async Task <IActionResult> Upload([FromForm] IFormFile image)  
-        {
-            if (image == null || image.Length == 0)
-            {
-                return BadRequest("No image file was uploaded.");
-            }
-
-            string exp = Path.GetExtension(image.FileName);
-            var imageName = Path.GetRandomFileName() + exp;
-            string dirSaveImage = Path.Combine(Directory.GetCurrentDirectory(), "images", imageName);
-            using (var stream = System.IO.File.Create(dirSaveImage))
-            {
-                await image.CopyToAsync(stream);
-            }
-            return Ok(new UploadImageViewModel() { Image = imageName });
         }
     }
 }

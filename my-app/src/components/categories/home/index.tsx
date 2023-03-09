@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import select from "../../../assets/select.jpg";
@@ -12,6 +11,8 @@ import { FilterMatchMode } from "primereact/api";
 import "./index.css";
 import { InputText } from "primereact/inputtext";
 import HomePageSkeleton from "./skeleton";
+import { APP_ENV } from "../../../env";
+import http from "../../../http";
 
 interface ICategoryItem {
   id: number;
@@ -40,10 +41,9 @@ const CategoriesPage = () => {
 
     if(token)
     {
-      axios
-      .get<Array<ICategoryItem>>("http://localhost:5000/api/categories", {
+      http
+      .get<Array<ICategoryItem>>(`api/categories`, {
         headers: {
-          "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
       })
@@ -68,7 +68,7 @@ const CategoriesPage = () => {
       <Image
         src={
           product.image
-            ? "http://localhost:5000/images/" + product.image
+            ? APP_ENV.IMAGE_PATH + product.image
             : select
         }
         alt={product.image}
@@ -106,10 +106,9 @@ const CategoriesPage = () => {
   const toast = useRef<Toast>(null);
 
   const accept = () => {
-    axios
-      .delete("http://localhost:5000/api/categories/" + state, {
+    http
+      .delete('api/categories/' + state, {
         headers: {
-          "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
       })

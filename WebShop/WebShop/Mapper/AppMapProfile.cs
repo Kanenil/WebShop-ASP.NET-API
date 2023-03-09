@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
 using WebShop.Data.Entities;
 using WebShop.Data.Entities.Identity;
-using WebShop.Models;
+using WebShop.Models.Account;
+using WebShop.Models.Category;
 
 namespace WebShop.Mapper
 {

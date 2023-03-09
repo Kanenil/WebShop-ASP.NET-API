@@ -6,6 +6,7 @@ using WebShop.Constants;
 using WebShop.Data;
 using WebShop.Data.Entities;
 using WebShop.Models;
+using WebShop.Models.Category;
 
 namespace WebShop.Controllers
 {

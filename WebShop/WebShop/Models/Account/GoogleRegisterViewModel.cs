@@ -1,6 +1,6 @@
-﻿namespace WebShop.Models
+﻿namespace WebShop.Models.Account
 {
-    public class GoogleLoginViewModel
+    public class GoogleRegisterViewModel
     {
         public string Token { get; set; }
         public string FirstName { get; set; }

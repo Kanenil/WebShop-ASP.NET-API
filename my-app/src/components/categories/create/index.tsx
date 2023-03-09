@@ -1,5 +1,4 @@
 import { ChangeEvent, useRef, useState } from "react";
-import axios from "axios";
 import {  useNavigate } from "react-router-dom";
 import select from "../../../assets/select.jpg";
 import { InputTextarea } from "primereact/inputtextarea";
@@ -9,6 +8,8 @@ import { Toast } from "primereact/toast";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { IResponseImage } from "../../auth/register";
+import { APP_ENV } from "../../../env";
+import http from "../../../http";
 
 interface IUserCreate {
   name: string;
@@ -35,10 +36,9 @@ const CreatePage = () => {
     if (state.name && state.image) {
       console.log(state);
       const token = localStorage.getItem("token");
-      axios
-        .post("http://localhost:5000/api/categories", state, {
+      http
+        .post("api/categories", state, {
           headers: {
-            "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
           },
         })
@@ -107,7 +107,7 @@ const CreatePage = () => {
                   <Image
                     src={
                       state.image
-                        ? "http://localhost:5000/images/" + state.image
+                        ? APP_ENV.IMAGE_PATH + state.image
                         : select
                     }
                     alt="Avatar"
@@ -143,7 +143,7 @@ const CreatePage = () => {
                     className="mt-4"
                     mode="basic"
                     name="image"
-                    url="http://localhost:5000/api/Account/upload"
+                    url={APP_ENV.IMAGE_UPLOAD_PATH}
                     accept="image/*"
                     maxFileSize={1000000}
                     onUpload={onUpload}
@@ -164,7 +164,7 @@ const CreatePage = () => {
                 </div>
                 <div className="field col">
                   <Button
-                    onClick={() => navigator("/")}
+                    onClick={() => navigator("/categories")}
                     type="button"
                     label="Back to list"
                     icon="pi pi-chart-bar"

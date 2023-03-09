@@ -1,4 +1,4 @@
-﻿namespace WebShop.Models
+﻿namespace WebShop.Models.Upload
 {
     public class UploadImageViewModel
     {
