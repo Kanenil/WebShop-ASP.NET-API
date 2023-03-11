@@ -36,14 +36,16 @@ export const Logout = () => {
 };
 
 export const NavBar = () => {
-  const { isAuth, roles } = useSelector((store: any) => store.auth as IAuthUser);
+  const { isAuth, roles } = useSelector(
+    (store: any) => store.auth as IAuthUser
+  );
   const navigator = useNavigate();
 
   const items: MenuItem[] = [
     {
       label: "Categories",
       icon: "pi pi-fw pi-database",
-      visible:roles.includes("admin"),
+      visible: roles.includes("admin"),
       items: [
         {
           label: "New",
@@ -59,13 +61,25 @@ export const NavBar = () => {
     },
   ];
 
-  const start = [
-    {
-      label: "Home",
-      icon: "pi pi-fw pi-home",
-      url: "/",
-    },
-  ];
+  const start = (
+    <>
+      <img
+        alt="logo"
+        src="/logo192.png"
+        height="40"
+        className="mr-2"
+        onClick={() => navigator("/")}
+        style={{ cursor: "pointer" }}
+      />
+      <Button
+        label="Home"
+        severity="secondary"
+        icon="pi pi-fw pi-home"
+        text
+        onClick={() => navigator("/")}
+      />
+    </>
+  );
 
   const end = isAuth ? (
     <AvatarMenu />
@@ -88,13 +102,18 @@ export const NavBar = () => {
     </>
   );
 
-  const menuItems = [...start, ...items];
+  const menuItems = [...items];
 
   return (
     <>
       <div className="navbar-wrapper">
         <div className="navbar-container">
-          <Menubar model={menuItems} end={end} className="w-full" />
+          <Menubar
+            start={start}
+            model={menuItems}
+            end={end}
+            className="w-full"
+          />
         </div>
       </div>
       <Outlet />
